@@ -480,5 +480,26 @@ select Personas.CI,
 on sumario_promedios.max_promedio = sumario_personas.Promedio and sumario_promedios.nombre_instituto = sumario_personas.nombre_instituto
 and sumario_promedios.nombre_grupo = sumario_personas.nombre_grupo
 
-	    
+-- 14. Estudiantes SIN Calificaciones para el Proyecto de pasaje de grado en un Instituto.
+-- (Grupo, Datos Estudiante)
+
+select Grupos.nombre_grupo,
+	   Personas.CI,
+	   ( Personas.primer_nombre || ' ' || 
+	     Personas.segundo_nombre || ' ' || 
+	     Personas.primer_apellido || ' ' || 
+	     Personas.segundo_apellido ) as Nombre_y_apellido	     
+from Personas
+join (select distinct foranea_id_grupo,foranea_ci_alumno from relacion_alumno_asignatura_grupos ) as tmp
+on tmp.foranea_ci_alumno = Personas.CI
+join Grupos on Grupos.id_grupo = tmp.foranea_id_grupo
+where tipo = 'Alumno'
+and not exists (
+	select * from Calificaciones where ci_alumno = Personas.CI 
+	and categoria in ( 'Primera_entrega_proyecto',
+					   'Segunda_entrega_proyecto',
+					   'Tercera_entrega_proyecto',
+					   'Defensa_individual', 
+					   'Defensa_grupal', 
+					   'Es_proyecto'))	    
 	    
