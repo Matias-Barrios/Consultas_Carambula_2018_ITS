@@ -428,8 +428,57 @@ select
 						group by ci_alumno
 						order by Promedio desc ) as avg_nota
 					)
-		
 	  ) as tmp  on tmp.id_instituto = Institutos.id_instituto   
 	 left join Personas on Personas.CI = tmp.CI
 	 left join relacion_alumno_asignatura_grupos on relacion_alumno_asignatura_grupos.foranea_ci_alumno = Personas.CI
 	 left join Grupos on Grupos.id_grupo = relacion_alumno_asignatura_grupos.foranea_id_grupo
+	 order by tmp.Promedio desc;
+	
+-- 13. Estudiante con el mejor promedio de Calificaciones de cada Grupo de un Instituto en
+-- particular. Ordenar por promedio de calificaciones de mayor a menor.
+-- (Nombre Completto, Grupo, Turno, Promedio
+
+select sumario_promedios.nombre_instituto,sumario_promedios.nombre_grupo,sumario_personas.turno,max_promedio
+from 
+(
+select nombre_instituto,nombre_grupo,max(promedio) as max_promedio 
+from ( 
+select Personas.CI,
+		( Personas.primer_nombre || ' ' || 
+	     Personas.segundo_nombre || ' ' || 
+	     Personas.primer_apellido || ' ' || 
+	     Personas.segundo_apellido ) as Nombre_y_apellido,
+	     Institutos.nombre as nombre_instituto,
+	     Grupos.nombre_grupo,
+	     (select avg(nota) from Calificaciones where ci_alumno = Personas.CI) as Promedio
+	     from Personas
+	     join (select distinct foranea_ci_alumno,foranea_id_grupo,foranea_id_instituto from relacion_alumno_asignatura_grupos) as sumario_ins_grupos
+	     on sumario_ins_grupos.foranea_ci_alumno = Personas.CI
+	     join Institutos on Institutos.id_instituto = sumario_ins_grupos.foranea_id_instituto
+	     join Grupos on Grupos.id_grupo = sumario_ins_grupos.foranea_id_grupo
+	     order by Promedio DESC
+	    ) as sumario_final
+	    group by nombre_instituto,nombre_grupo
+	    order by max_promedio   
+) as sumario_promedios
+join (
+select Personas.CI,
+		( Personas.primer_nombre || ' ' || 
+	     Personas.segundo_nombre || ' ' || 
+	     Personas.primer_apellido || ' ' || 
+	     Personas.segundo_apellido ) as Nombre_y_apellido,
+	     Institutos.nombre as nombre_instituto,
+	     Grupos.nombre_grupo,
+	     Grupos.Turno,
+	     (select avg(nota) from Calificaciones where ci_alumno = Personas.CI) as Promedio
+	     from Personas
+	     join (select distinct foranea_ci_alumno,foranea_id_grupo,foranea_id_instituto from relacion_alumno_asignatura_grupos) as sumario_ins_grupos
+	     on sumario_ins_grupos.foranea_ci_alumno = Personas.CI
+	     join Institutos on Institutos.id_instituto = sumario_ins_grupos.foranea_id_instituto
+	     join Grupos on Grupos.id_grupo = sumario_ins_grupos.foranea_id_grupo
+		) as sumario_personas 
+on sumario_promedios.max_promedio = sumario_personas.Promedio and sumario_promedios.nombre_instituto = sumario_personas.nombre_instituto
+and sumario_promedios.nombre_grupo = sumario_personas.nombre_grupo
+
+	    
+	    
