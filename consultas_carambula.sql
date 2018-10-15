@@ -7,6 +7,7 @@ select ( Personas.primer_nombre || ' ' ||
 	     from Personas
 	     join Relacion_Docente_Trabaja_Instituto R
 	     on  R.foranea_ci_docente = Personas.CI and foranea_id_instituto = 1
+	     where Personas.baja = 'f'
 	     order by Nombre_y_apellido;
 	     
 -- Listado general de los Institutos y Escuelas indicando para cada uno cantidad de grupos, 
@@ -27,7 +28,8 @@ select Institutos.nombre, (
 				select distinct foranea_id_grupo 
 				from Relacion_Grupos_Formado_Asignaturas where foranea_id_instituto = Institutos.id_instituto) as cnt_docentes
 			) as Cantidad_Grupos
-		from Institutos;
+		from Institutos
+        where Institutos.baja = 'f';
 	
 	
 -- 3. Cantidad de Docentes por Materia . Ordenado por cantidad de Docentes de mayor a menor. (Materia, Cantidad)
@@ -35,6 +37,7 @@ select Institutos.nombre, (
 	select Asignaturas.nombre_asignatura,count(*) as Cantidad_Docentes
 		from ( select distinct foranea_ci_docente,foranea_id_asignatura from Relacion_Docente_Asignatura_Grupos ) as docente_asignatura
 		join Asignaturas on foranea_id_asignatura = id_asignatura
+		where Asignaturas.baja = 'f'
 		group by Asignaturas.nombre_asignatura;
 	
 
@@ -49,7 +52,7 @@ select Asignaturas.nombre_asignatura,
 	   from Relacion_Docente_Asignatura_Grupos
 	   join Personas on Personas.CI = foranea_ci_docente
 	   join Asignaturas on Asignaturas.id_asignatura = foranea_id_asignatura
-       where foranea_id_grupo = 4;
+       where foranea_id_grupo = 4 and Asignaturas.baja = 'f';
       
 -- 5.Materias y Grupo que cursa un Estudiante en particular. (Materia, Grupo)
 
@@ -57,13 +60,13 @@ select Asignaturas.nombre_asignatura,Grupos.nombre_grupo
 	   from Relacion_Alumno_Asignatura_Grupos
 	   join Asignaturas on Asignaturas.id_asignatura = foranea_id_asignatura
 	   join Grupos on Grupos.id_grupo = foranea_id_grupo
-	   where foranea_ci_alumno = 31814743;
+	   where foranea_ci_alumno = 31814743 and Asignaturas.baja = 'f';
 
 -- 6 Listado de todas las Calificaciones de un Estudiante en particular para una Materia. ( Fecha, Tipo, Calificación )
 
 select fecha, categoria, nota
 	   from Calificaciones
-	   where ci_alumno = 31814743;
+	   where ci_alumno = 31814743 and Calificaciones.baja = 'f';
 
 -- 7. Calificación y juicio final de un Estudiante para todas las Materias que cursa. (Materia, Calificación, Juicio)
 
@@ -76,7 +79,7 @@ select Asignaturas.nombre_asignatura as Nombre,nota_final_asignatura,
   	) as Juicio
 	from relacion_alumno_asignatura_grupos
 	join Asignaturas on Asignaturas.id_asignatura = foranea_id_asignatura
-	where foranea_ci_alumno = 39912206
+	where foranea_ci_alumno = 39912206 and Asignaturas.baja = 'f';
 
 	  
 -- 8 Calificación final y juicio de todos los Estudiantes de un Grupo para una Materia en
@@ -115,7 +118,7 @@ select ( Personas.primer_nombre || ' ' ||
              in ('Primera_entrega_proyecto','Segunda_entrega_proyecto','Tercera_entrega_proyecto','Defensa_individual','Defensa_grupal','Es_proyecto') 
               and  CI_alumno = Personas.CI
 		) as Nota_Final_Proyecto
-		from Personas where Personas.CI in ( select distinct foranea_ci_alumno
+		from Personas where Personas.baja = 'f' and Personas.CI in ( select distinct foranea_ci_alumno
 																from relacion_alumno_asignatura_grupos
 																where foranea_id_grupo = 4);
 
@@ -432,6 +435,7 @@ select
 	 left join Personas on Personas.CI = tmp.CI
 	 left join relacion_alumno_asignatura_grupos on relacion_alumno_asignatura_grupos.foranea_ci_alumno = Personas.CI
 	 left join Grupos on Grupos.id_grupo = relacion_alumno_asignatura_grupos.foranea_id_grupo
+	 where Institutos.baja = 'f';
 	 order by tmp.Promedio desc;
 	
 -- 13. Estudiante con el mejor promedio de Calificaciones de cada Grupo de un Instituto en
@@ -493,7 +497,7 @@ from Personas
 join (select distinct foranea_id_grupo,foranea_ci_alumno from relacion_alumno_asignatura_grupos ) as tmp
 on tmp.foranea_ci_alumno = Personas.CI
 join Grupos on Grupos.id_grupo = tmp.foranea_id_grupo
-where tipo = 'Alumno'
+where tipo = 'Alumno' and Personas.baja = 'f'
 and not exists (
 	select * from Calificaciones where ci_alumno = Personas.CI 
 	and categoria in ( 'Primera_entrega_proyecto',
