@@ -501,5 +501,62 @@ and not exists (
 					   'Tercera_entrega_proyecto',
 					   'Defensa_individual', 
 					   'Defensa_grupal', 
-					   'Es_proyecto'))	    
+					   'Es_proyecto'))	  
+					   
+-- 15. Docentes de un Instituto, indicando la cantidad de grupos/materias que tiene cada uno. (Datos Docente, Cantidad)
+
+select ( Personas.primer_nombre || ' ' || 
+	     Personas.segundo_nombre || ' ' || 
+	     Personas.primer_apellido || ' ' || 
+	     Personas.segundo_apellido ) as Nombre_y_apellido,
+	     Personas.grado,
+	     (
+	     	select count(*)
+	     		from ( select distinct foranea_id_asignatura 
+	     					from Relacion_Docente_Asignatura_Grupos where
+	     					foranea_ci_docente = Personas.CI ) as materias
+	     ) as Cantidad_Asignaturas,
+	     (
+	     	select count(*)
+	     		from ( select distinct foranea_id_grupo 
+	     					from Relacion_Docente_Asignatura_Grupos where
+	     					foranea_ci_docente = Personas.CI ) as materias
+	     ) as Cantidad_Grupos
+	     from Personas
+	     where tipo = 'Docente' and baja = 'f';
 	    
+	    
+-- 16. Institutos en los que se dictan un Curso en particular, indicando la cantidad de grupos.
+-- (Nombre, Datos Ubicación, CantidadGrupos)
+
+
+select Institutos.nombre,
+	Orientaciones.nombre_orientacion,
+	(
+	select count(*) 
+		from Grupos 
+		where foranea_id_instituto = Institutos.id_instituto and foranea_id_orientacion = 12
+	) as Cantidad_Grupos
+	from Institutos
+	join Orientaciones on Orientaciones.id_orientacion = 12
+	where exists (
+		select * from Grupos where foranea_id_instituto = Institutos.id_instituto and foranea_id_orientacion = 12 )
+		and Institutos.baja = 'f';
+		
+		
+-- 17. Historial de las acciones realizadas por un Usuario en particular. Ordenar cronológicamente.
+-- (Fecha, Acción, Datos PC)
+		
+select * from Historial
+	where foranea_CI_Persona = 48914198
+	order by fecha_hora;
+
+
+-- 18. Historial de las acciones realizadas por todos los Usuarios en un período de tiempo
+-- determinado. Ordenar cronológicamente. (Fecha, Acción, Datos Usuario, Datos PC)
+
+select * from Historial
+	where fecha_hora > TO_DATE('10-28-1986','%m-%d-%Y') and fecha_hora < TO_DATE('01-01-2040','%m-%d-%Y');
+	order by fecha_hora;
+
+		
