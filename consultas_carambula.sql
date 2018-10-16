@@ -435,7 +435,7 @@ select
 	 left join Personas on Personas.CI = tmp.CI
 	 left join relacion_alumno_asignatura_grupos on relacion_alumno_asignatura_grupos.foranea_ci_alumno = Personas.CI
 	 left join Grupos on Grupos.id_grupo = relacion_alumno_asignatura_grupos.foranea_id_grupo
-	 where Institutos.baja = 'f';
+	 where Institutos.baja = 'f'
 	 order by tmp.Promedio desc;
 	
 -- 13. Estudiante con el mejor promedio de Calificaciones de cada Grupo de un Instituto en
